@@ -72,7 +72,6 @@ func (d *AndroidDevice) TakeScreenshot() (*os.File, error) {
 		return nil, fmt.Errorf("failed to pull screenshot: %v", err)
 	}
 
-	// Clean up
 	_, err = d.ShellCommand("rm", devicePath)
 
 	if _, err := file.Seek(0, 0); err != nil {
