@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/electricbubble/gadb v0.1.0
 	github.com/mark3labs/mcp-go v0.22.0
+	golang.org/x/image v0.26.0
 )
 
 require (
