@@ -13,5 +13,5 @@ func Test(t *testing.T) {
 	}
 
 	device.GetDevice()
-	device.TakeScreenshot()
+	device.TakeScreenshotBase64()
 }
