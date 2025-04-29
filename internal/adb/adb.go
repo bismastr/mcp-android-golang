@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"os"
 
+	"github.com/beevik/etree"
 	"github.com/electricbubble/gadb"
 	"golang.org/x/image/draw"
 )
@@ -49,10 +50,49 @@ func (d *AndroidDevice) Tap(x, y int) error {
 	return err
 }
 
-func (d *AndroidDevice) GetHeirarchy(x, y int) error {
-	cmd := fmt.Sprintf("input tap %d %d", x, y)
-	_, err := d.ShellCommand(cmd)
-	return err
+func (d *AndroidDevice) GetUIHierarchy() (string, error) {
+	devicePath := "/sdcard/window_dump.xml"
+
+	_, err := d.ShellCommand("uiautomator", "dump", "--compressed", devicePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to dump UI hierarchy: %v", err)
+	}
+
+	xmlContent, err := d.ShellCommand("cat", devicePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read UI hierarchy file: %v", err)
+	}
+
+	_, err = d.ShellCommand("rm", devicePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to remove temporary file: %v", err)
+	}
+
+	return xmlContent, nil
+}
+
+func (d *AndroidDevice) ParseXML(xmlData string) ([]string, error) {
+	doc := etree.NewDocument()
+
+	err := doc.ReadFromString(xmlData)
+	if err != nil {
+		return nil, err
+	}
+
+	root := doc.SelectElement("hierarchy")
+	if root == nil {
+		return nil, fmt.Errorf("hierarchy element not found in XML")
+	}
+
+	result := []string{}
+	for _, e := range root.FindElements("//node") {
+		bounds := e.SelectAttr("bounds")
+		if bounds != nil {
+			result = append(result, bounds.Value)
+		}
+	}
+
+	return result, nil
 }
 
 func (d *AndroidDevice) TakeScreenshotBase64() (string, error) {

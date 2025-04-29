@@ -6,12 +6,45 @@ import (
 	"github.com/bismastr/mcp-android-automation/internal/adb"
 )
 
-func Test(t *testing.T) {
+func TestScreenshot(t *testing.T) {
 	device, err := adb.NewAdbDevice()
 	if err != nil {
 		t.Fatalf("Error creating device: %v", err)
 	}
 
-	device.GetDevice()
 	device.TakeScreenshotBase64()
+}
+
+func TestGetHeirarchy(t *testing.T) {
+	device, err := adb.NewAdbDevice()
+	if err != nil {
+		t.Fatalf("Error creating device: %v", err)
+	}
+
+	result, err := device.GetUIHierarchy()
+	if err != nil {
+		t.Fatalf("Error get ui: %v", err)
+	}
+
+	t.Log(result)
+}
+
+func TestXMLParser(t *testing.T) {
+
+	device, err := adb.NewAdbDevice()
+	if err != nil {
+		t.Fatalf("Error creating device: %v", err)
+	}
+
+	result, err := device.GetUIHierarchy()
+	if err != nil {
+		t.Fatalf("Error get ui: %v", err)
+	}
+
+	parsedXml, err := device.ParseXML(result)
+	if err != nil {
+		t.Fatalf("Error parsing xml: %v", err)
+	}
+
+	t.Log(parsedXml)
 }

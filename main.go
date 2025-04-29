@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	// Parse command line flags
 	sseMode := flag.Bool("sse", false, "Run in SSE mode instead of stdio mode")
 	flag.Parse()
 
@@ -33,21 +32,17 @@ func main() {
 		),
 	),
 		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			// Get base64 encoded JPEG directly
 			base64Data, err := device.TakeScreenshotBase64()
 			if err != nil {
 				return nil, fmt.Errorf("failed to take screenshot: %w", err)
 			}
 
-			// Create image content using the helper function
 			imageContent := mcp.NewToolResultImage("Screenshot", base64Data, "image/jpeg")
 
-			// Return the result with file content and metadata
 			return imageContent, nil
 		},
 	)
 
-	// Run server in appropriate mode
 	if *sseMode {
 		sseServer := server.NewSSEServer(s)
 		log.Printf("Starting SSE server on localhost:8080")
