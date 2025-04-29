@@ -43,6 +43,40 @@ func main() {
 		},
 	)
 
+	s.AddTool(mcp.NewTool("list-element", mcp.WithDescription("List elements on screen and their coordinates, with display text, id, class and bounds. Do not cache this result.")),
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			elements, err := device.GetUIHierarchy()
+			if err != nil {
+				return nil, err
+			}
+
+			result := mcp.NewToolResultText(elements)
+			return result, nil
+		},
+	)
+
+	s.AddTool(mcp.NewTool("tap",
+		mcp.WithDescription("Perform a tap operation on the Android device screen"),
+		mcp.WithNumber("x",
+			mcp.Required(),
+			mcp.Description("X coordinate of the tap position"),
+		),
+		mcp.WithNumber("y",
+			mcp.Required(),
+			mcp.Description("Y coordinate of the tap position"),
+		),
+	), func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		x := int(request.Params.Arguments["x"].(float64))
+		y := int(request.Params.Arguments["y"].(float64))
+
+		err := device.Tap(x, y)
+		if err != nil {
+			return nil, err
+		}
+
+		return mcp.NewToolResultText(fmt.Sprintf("Tap operation performed at coordinates (%d, %d)", x, y)), nil
+	})
+
 	if *sseMode {
 		sseServer := server.NewSSEServer(s)
 		log.Printf("Starting SSE server on localhost:8080")

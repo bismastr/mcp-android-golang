@@ -3,13 +3,16 @@ package adb
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"os"
+	"regexp"
+	"strconv"
 
-	"github.com/beevik/etree"
 	"github.com/electricbubble/gadb"
 	"golang.org/x/image/draw"
 )
@@ -68,28 +71,64 @@ func (d *AndroidDevice) GetUIHierarchy() (string, error) {
 		return "", fmt.Errorf("failed to remove temporary file: %v", err)
 	}
 
-	return xmlContent, nil
+	parsed, err := d.ParseXML(xmlContent)
+	if err != nil {
+		return "", err
+	}
+
+	elements, err := d.CollectElements(parsed.Nodes)
+	if err != nil {
+		return "", err
+	}
+
+	jsonData, err := json.Marshal(elements)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
 }
 
-func (d *AndroidDevice) ParseXML(xmlData string) ([]string, error) {
-	doc := etree.NewDocument()
+func (d *AndroidDevice) ParseXML(xmlData string) (*Hierarchy, error) {
 
-	err := doc.ReadFromString(xmlData)
+	var hierarchy Hierarchy
+	err := xml.Unmarshal([]byte(xmlData), &hierarchy)
 	if err != nil {
+		fmt.Printf("Error parsing XML: %v\n", err)
 		return nil, err
 	}
 
-	root := doc.SelectElement("hierarchy")
-	if root == nil {
-		return nil, fmt.Errorf("hierarchy element not found in XML")
-	}
+	return &hierarchy, nil
+}
 
-	result := []string{}
-	for _, e := range root.FindElements("//node") {
-		bounds := e.SelectAttr("bounds")
-		if bounds != nil {
-			result = append(result, bounds.Value)
+func (d *AndroidDevice) CollectElements(nodes []Node) ([]UIElement, error) {
+	var result []UIElement
+	for _, node := range nodes {
+		x, y, w, h, err := parseBounds(node.Bounds)
+		if err != nil {
+			return nil, err
 		}
+
+		temp := UIElement{
+			Text:        node.Text,
+			Class:       node.Class,
+			ContentDesc: node.ContentDesc,
+			ResourceID:  node.ResourceID,
+			Bounds:      node.Bounds,
+			X:           x,
+			Y:           y,
+			Width:       w,
+			Height:      h,
+		}
+
+		result = append(result, temp)
+
+		childElements, err := d.CollectElements(node.ChildNodes)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, childElements...)
 	}
 
 	return result, nil
@@ -159,4 +198,43 @@ func (d *AndroidDevice) TakeScreenshotBase64() (string, error) {
 	base64.StdEncoding.Encode(base64Data, buf.Bytes())
 
 	return string(base64Data), nil
+}
+
+func parseBounds(bounds string) (x, y, width, height int, err error) {
+	re := regexp.MustCompile(`\[(\d+),(\d+)\]\[(\d+),(\d+)\]`)
+	matches := re.FindStringSubmatch(bounds)
+
+	if len(matches) != 5 {
+		return 0, 0, 0, 0, fmt.Errorf("invalid bounds format: %s", bounds)
+	}
+
+	left, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return 0, 0, 0, 0, fmt.Errorf("invalid left coordinate: %w", err)
+	}
+
+	top, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return 0, 0, 0, 0, fmt.Errorf("invalid top coordinate: %w", err)
+	}
+
+	right, err := strconv.Atoi(matches[3])
+	if err != nil {
+		return 0, 0, 0, 0, fmt.Errorf("invalid right coordinate: %w", err)
+	}
+
+	bottom, err := strconv.Atoi(matches[4])
+	if err != nil {
+		return 0, 0, 0, 0, fmt.Errorf("invalid bottom coordinate: %w", err)
+	}
+
+	if right < left || bottom < top {
+		return 0, 0, 0, 0, fmt.Errorf("invalid rectangle coordinates: %s", bounds)
+	}
+
+	x = (left + right) / 2
+	y = (top + bottom) / 2
+	width = right - left
+	height = bottom - top
+	return
 }

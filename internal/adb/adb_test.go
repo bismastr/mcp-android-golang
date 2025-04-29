@@ -30,7 +30,6 @@ func TestGetHeirarchy(t *testing.T) {
 }
 
 func TestXMLParser(t *testing.T) {
-
 	device, err := adb.NewAdbDevice()
 	if err != nil {
 		t.Fatalf("Error creating device: %v", err)
@@ -41,10 +40,5 @@ func TestXMLParser(t *testing.T) {
 		t.Fatalf("Error get ui: %v", err)
 	}
 
-	parsedXml, err := device.ParseXML(result)
-	if err != nil {
-		t.Fatalf("Error parsing xml: %v", err)
-	}
-
-	t.Log(parsedXml)
+	t.Log(result)
 }
