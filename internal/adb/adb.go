@@ -106,7 +106,8 @@ func (d *AndroidDevice) CollectElements(nodes []Node) ([]UIElement, error) {
 	for _, node := range nodes {
 		x, y, w, h, err := parseBounds(node.Bounds)
 		if err != nil {
-			return nil, err
+			fmt.Printf("Skipping invalid node: %v\n", err)
+			continue
 		}
 
 		temp := UIElement{
