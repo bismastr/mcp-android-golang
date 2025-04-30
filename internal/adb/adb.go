@@ -47,6 +47,22 @@ func (d *AndroidDevice) ShellCommand(cmd string, args ...string) (string, error)
 	return d.adb.RunShellCommand(cmd, args...)
 }
 
+func (d *AndroidDevice) SendKeys(text string) error {
+	cmd := fmt.Sprintf("input text \"%s\"", text)
+	_, err := d.ShellCommand(cmd)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (d *AndroidDevice) PressEnter() error {
+	cmd := "input keyevent 66"
+	_, err := d.ShellCommand(cmd)
+	return err
+}
+
 func (d *AndroidDevice) Tap(x, y int) error {
 	cmd := fmt.Sprintf("input tap %d %d", x, y)
 	_, err := d.ShellCommand(cmd)
