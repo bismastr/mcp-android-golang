@@ -1,10 +1,6 @@
 # Android MCP Golang
 An MCP Server that integrates the ADB command, providing device actions capabilities into LLM 
 
-# Demo
-![Screen Recording 2025-05-04 at 19 50 11](https://github.com/user-attachments/assets/f4898430-ff78-4a68-abe7-8d99c05156f3)
-
-
 ## Tools
 - **input-text**
 	- will execute send keys and click submit if necessary
@@ -17,3 +13,6 @@ An MCP Server that integrates the ADB command, providing device actions capabili
 
 - **take-sceenshot**
 	- Take a screenshot of the mobile device.
+
+# Demo
+![Screen Recording 2025-05-04 at 19 50 11](https://github.com/user-attachments/assets/f4898430-ff78-4a68-abe7-8d99c05156f3)
