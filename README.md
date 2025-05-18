@@ -52,7 +52,11 @@ go install
   }
 }
 ```
+#### Open Up Android Simulator 
+Recommended using Android Studio Built in Simulator
 
 #### Restart Claude Desktop by Quitting the App
+Try to restart the client
+
 
 
