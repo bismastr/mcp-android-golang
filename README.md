@@ -22,7 +22,7 @@ An MCP Server that integrates the ADB command, providing device actions capabili
 #### Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone https://github.com/bismastr/mcp-android-golang.git
 ```
 
 #### Go to the project directory
